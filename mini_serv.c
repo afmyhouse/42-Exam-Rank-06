@@ -29,7 +29,10 @@ size_t			next_id = 0;
 fd_set		active_fds, read_fds, write_fds;
 
 //PART 1: Error handling
-void fatal_error() {
+void fatal_error(const char *msg) {
+	if (msg) {
+		write(2, msg, strlen(msg));
+	}
 	write(2, "Fatal error\n", 12);
 	while (clients) {
 		t_client *tmp = clients;
@@ -55,7 +58,7 @@ t_client *add_client(int fd) {
 	t_client *client_new = malloc(sizeof(t_client));
 
 	if (!client_new)
-		fatal_error();
+		fatal_error("add_client malloc error");
 
 	client_new->id = next_id++;
 	client_new->fd = fd;
@@ -110,7 +113,7 @@ char *str_join(char *buf, const char *add) {
 		return NULL;
 	}
 	char *res = malloc(len + 1);
-	if (!res) fatal_error();
+	if (!res) fatal_error("str_join malloc error");
 	res[0] = 0;
 	if (buf) {
 		strcat(res, buf);
@@ -143,7 +146,7 @@ void extract_lines(t_client *client) {
 	size_t remaining = strlen(start);
 	if (remaining > 0) {
 		char *new_buf = malloc(remaining + 1);
-		if (!new_buf) fatal_error();
+		if (!new_buf) fatal_error("extract_lines malloc error");
 		strcpy(new_buf, start);
 		free(client->buf);
 		client->buf = new_buf;
@@ -164,7 +167,7 @@ int main(int ac, char **av)
 
 	int server_port = atoi(av[1]);
 	int server_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_fd < 0) fatal_error();
+	if (server_fd < 0) fatal_error("server fd < 0");
 
 
 	FD_ZERO(&active_fds);
@@ -178,19 +181,19 @@ int main(int ac, char **av)
 
 	if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
 		close(server_fd);
-		fatal_error();
+		fatal_error("bind error");
 	}
 
 	if (listen(server_fd, MAX_CLIENTS) < 0) {
 		close(server_fd);
-		fatal_error();
+		fatal_error("listen error");
 	}
 
 
 	while (1) {
 		read_fds = write_fds = active_fds;
 		if (select(max_fd + 1, &read_fds, &write_fds, NULL, NULL) < 0)
-			fatal_error();
+			fatal_error("select error");
 
 		// Check for new connections
 		if (FD_ISSET(server_fd, &read_fds)) {
