@@ -29,9 +29,9 @@ done
 
 # ✏️ Send messages from clients
 sleep 1
-echo "Hello from client 1" | nc 127.0.0.1 $PORT &
+echo "Hello from client $i here here" | nc 127.0.0.1 $PORT &
 sleep 0.5
-echo -e "Multi-line\nMessage from client 2" | nc 127.0.0.1 $PORT &
+echo -e "Multi-line\nMessage from client $i there there" | nc 127.0.0.1 $PORT &
 sleep 0.5
 
 # ⏳ Let things run for a bit
